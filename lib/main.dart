@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Substitua as variáveis pelas chaves do seu projeto do Supabase caso não as passe por ambiente (Environment)
+  const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://ayzblvretzqsjggsfeua.supabase.co');
+  const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_RnjFC6ypAPROTuMSif667g_4bBUm8x6');
+
+  // Inicializa o Supabase com as chaves inseridas acima
+  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+  
   runApp(const MyApp());
 }
 
@@ -54,68 +64,73 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String _statusMessage = 'A testar a ligação...';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _testarConexaoSupabase();
+  }
+
+  Future<void> _testarConexaoSupabase() async {
+    try {
+      // Tentativa de fazer um pedido muito básico para ver se liga (ir buscar nada a uma tabela inexistente)
+      // Se não der erro de ligação, é porque conseguiu falar com o servidor
+      await Supabase.instance.client.from('qualquer_tabela').select().limit(1);
+      
+      setState(() {
+        _statusMessage = 'Ligação efectuada com sucesso!';
+      });
+    } on PostgrestException catch (e) {
+      // Se o erro for relacionado com a tabela não existir, significa que ligou à base de dados! (porque a tabela 'qualquer_tabela' não existe)
+      if (e.code == '42P01' || e.message.contains('Could not find the table')) { 
+         setState(() {
+          _statusMessage = 'Ligação Efectuada com Sucesso ao Supabase!\n\n(Aviso: A tabela que tentou ler não existe, mas a ligação funcionou.)';
+        });
+      } else {
+        setState(() {
+          _statusMessage = 'Erro do Supabase:\n\n${e.message}';
+        });
+      }
+    } catch (e) {
+      // Outro tipo de erro (ex: sem internet ou URL/Key inválidos)
+      setState(() {
+        _statusMessage = 'Falha na ligação ao Supabase:\n\n$e';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Estado da Ligação ao Supabase:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _statusMessage,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: _testarConexaoSupabase,
+        tooltip: 'Testar Conexão Novamente',
+        child: const Icon(Icons.refresh),
       ),
     );
   }
