@@ -3,12 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Substitua as variáveis pelas chaves do seu projeto do Supabase caso não as passe por ambiente (Environment)
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://ayzblvretzqsjggsfeua.supabase.co');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'sb_publishable_RnjFC6ypAPROTuMSif667g_4bBUm8x6');
 
-  // Inicializa o Supabase com as chaves inseridas acima
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
   
   runApp(const MyApp());
@@ -74,8 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _testarConexaoSupabase() async {
     try {
-      // Tentativa de fazer um pedido muito básico para ver se liga (ir buscar nada a uma tabela inexistente)
-      // Se não der erro de ligação, é porque conseguiu falar com o servidor
       await Supabase.instance.client.from('qualquer_tabela').select().limit(1);
       
       setState(() {
