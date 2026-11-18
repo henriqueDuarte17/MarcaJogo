@@ -86,7 +86,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _nameCtrl,
                       textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(
-                        labelText: 'Nome',
+                        labelText: 'Nome', //animação do placeholder a fazer parte da bpor
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (v) => Validators.notEmpty(v, field: 'O nome'),

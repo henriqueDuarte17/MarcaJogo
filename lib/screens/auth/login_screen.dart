@@ -26,14 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  @override
-  void dispose() {
-    _nameCtrl.dispose();
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmCtrl.dispose();
-    super.dispose();
-  }
+
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return; //valida o formulario com o que definimos no validator
